@@ -8,12 +8,13 @@
 #include <limits.h>
 #include <string.h>
 
-
+// Totally 
 typedef struct SuperBlock
 {
+    uint16_t fat; // location of fat1
+    uint16_t fat1; // location of fat2
     uint16_t root; // location of root directory
     uint16_t data_blocks; // start location of data location
-    uint16_t fat; // location of fat
 }SuperBlock;
 
 // Individual data structure in FAT
