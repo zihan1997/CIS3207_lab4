@@ -16,31 +16,38 @@ typedef struct SuperBlock
     uint16_t fat; // location of fat
 }SuperBlock;
 
+// Individual data structure in FAT
+// Totally 4 bytes
+typedef struct map
+{
+    uint16_t input;
+    uint16_t output;
+}map;
+
+// Totally 4 KB
 typedef struct FAT
 {
-    unsigned int total_blocks;
-    unsigned int used_blocks;
-    int* map;
+    uint16_t total_blocks; // 2 bytes
+    uint16_t used_blocks; // 2 bytes
+    map maps[999];
 }FAT;
 
+// 32 Bytes
 typedef struct Entry{
-    char name[4];
-    char ext[2];
+    char name[8]; //  8 bytes
+    char ext[3]; // 3 bytes
     uint8_t attribute; // 1 byte
-    uint16_t create_time; // 2 bytes
-    uint16_t create_date;
+    uint16_t create_time; // 2 bytes, 1 byte for hour
+    uint16_t create_date; // 2 bytes, 
     uint16_t last_access;
     uint16_t modified_time;
     uint16_t modified_date;
     uint16_t start_block;
     uint32_t size;
+    // use if the file is a folder
+    struct Entry* entries;  // 4 bytes
 }Entry;
 
-typedef struct RootDir
-{
-    // list of entries
-    Entry* entries;
-}RootDir;
 
 typedef struct Volume
 {
@@ -50,7 +57,7 @@ typedef struct Volume
     unsigned int used_size;
     struct VolumeHeader *vbr; /*header*/
     struct FAT *fat; /*pointer for FAT*/
-    struct RootDir *root;
+    Entry* root;
     // struct Data_blub; /*beginning of the data region*/
 }Volume;
 
@@ -65,6 +72,7 @@ static SuperBlock superBlock;
 static Entry entry;
 static Volume volume;
 static VolumeHeader volumeHeader;
+static Entry rootDir;
 
 // Functions
 int make_fs(char* disk_name);
