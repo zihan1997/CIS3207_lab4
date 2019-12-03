@@ -48,33 +48,36 @@ typedef struct Entry{
     struct Entry* entries;  // 4 bytes
 }Entry;
 
+// 4 bytes
+typedef struct VolumeHeader{
+    uint16_t num_fats; // 2 bytes, number of fat
+    uint16_t root_entries; //2 bytes,number of root entrie 
+}VolumeHeader;
 
+// 50 bytes
 typedef struct Volume
 {
-    char name[NAME_MAX]; /*identifer for the virtualdisk*/ 
-    char img[PATH_MAX]; /*disk file's file pointer*/
-    int state;
-    unsigned int used_size;
-    struct VolumeHeader *vbr; /*header*/
-    struct FAT *fat; /*pointer for FAT*/
-    Entry* root;
+    char name[6]; /*identifer for the virtualdisk*/ 
+    // char img[PATH_MAX]; /*disk file's file pointer*/
+    // int state;
+    uint32_t used_size; // 4 bytes
+    struct VolumeHeader *vbr; // 4 bytes
+    struct FAT *fat; // 4
+    Entry* root; // 32
     // struct Data_blub; /*beginning of the data region*/
 }Volume;
 
-typedef struct VolumeHeader{
-    uint16_t num_fats; // 12 bytes, number of fat
-    uint16_t root_entries; //2 bytes,number of root entrie 
-}VolumeHeader;
 
 // Data structures
 static FAT fat;
 static SuperBlock superBlock;
-static Entry entry;
+// static Entry entry;
 static Volume volume;
 static VolumeHeader volumeHeader;
 static Entry rootDir;
 
 // Functions
+void initialStructures();
 int make_fs(char* disk_name);
 int mount_fs(char *disk_name);
 int umount_fs(char *disk_name);;
