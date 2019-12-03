@@ -33,17 +33,17 @@ typedef struct FAT
     map maps[999];
 }FAT;
 
-// 32 Bytes
+// 51 Bytes
 typedef struct Entry{
     char name[8]; //  8 bytes
     char ext[3]; // 3 bytes
-    uint8_t attribute; // 1 byte
-    uint16_t create_time; // 2 bytes, 1 byte for hour
-    uint16_t create_date; // 2 bytes, 
-    uint16_t last_access;
-    uint16_t modified_time;
-    uint16_t modified_date;
-    uint16_t start_block;
+    uint8_t attribute; // 1 byte; 1 for folder, 0 for file
+    char create_time[5]; // 5 bytes, 1 byte for hour
+    char create_date[6]; // 6 bytes 
+    char last_access[6]; // 6 bytes 
+    char modified_time[6]; // 6 bytes 
+    char modified_date[6]; // 6 bytes 
+    uint16_t start_block; // 2
     uint32_t size;
     // use if the file is a folder
     struct Entry* entries;  // 4 bytes
