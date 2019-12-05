@@ -9,13 +9,14 @@
 #include <string.h>
 #include <time.h>
 
-// Totally 
+// Totally 58 bytes
 typedef struct SuperBlock
 {
     uint16_t fat; // location of fat1
     uint16_t fat1; // location of fat2
     uint16_t root; // location of root directory
     uint16_t data_blocks; // start location of data location
+    Volume volume // 50 bytes
 }SuperBlock;
 
 // Individual data structure in FAT
@@ -63,7 +64,7 @@ typedef struct Volume
     // char img[PATH_MAX]; /*disk file's file pointer*/
     // int state;
     uint32_t used_size; // 4 bytes
-    struct VolumeHeader *vbr; // 4 bytes
+    struct VolumeHeader vbr; // 4 bytes
     struct FAT *fat; // 4
     Entry* root; // 32
     // struct Data_blub; /*beginning of the data region*/
@@ -74,8 +75,6 @@ typedef struct Volume
 static FAT fat;
 static SuperBlock superBlock;
 // static Entry entry;
-static Volume volume;
-static VolumeHeader volumeHeader;
 static Entry rootDir;
 
 // Functions
