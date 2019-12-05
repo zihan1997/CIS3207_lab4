@@ -17,21 +17,20 @@ uint8_t get_min_day(uint16_t t){
 }
 
 void initialStructures(){
-    // Volume Header
-    volumeHeader.num_fats = 2;
-    volumeHeader.root_entries = 2;
-    // Volume
-    strcpy(volume.name, "C");
-    volume.used_size = 32000; // bytes
-    volume.vbr = &volumeHeader;
-    volume.fat = &fat;
-    volume.root = &rootDir;
     
     // Super block
     superBlock.fat = 3; // Block 3 & 4
     superBlock.fat1 = 5; // Block 5 & 6
     superBlock.root = 7; // Block 7 & 8
     superBlock.data_blocks = 9;
+    // Volume Header
+    superBlock.volume.vbr.num_fats = 2;
+    superBlock.volume.vbr.root_entries = 2;
+    // Volume
+    strcpy(superBlock.volume.name, "C");
+    superBlock.volume.used_size = 32000; // bytes
+    superBlock.volume.fat = &fat;
+    superBlock.volume.root = &rootDir;
 
     // FAT
     fat.total_blocks = 16384;
@@ -54,8 +53,7 @@ void initialStructures(){
     rootDir.modified_time = 0;
     rootDir.modified_date = 0;
     rootDir.size = 0; // folder no size;
-    rootDir.entries = malloc(2 * sizeof(struct Entry));
-    rootDir.entries = 
+    rootDir.entries = NULL;
 
 }
 
