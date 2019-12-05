@@ -69,7 +69,8 @@ int make_fs(char* disk_name){
     if(make_disk(disk_name) != 0){
         return 0;
     }
-    return 1;
+    initialStructures();
+    return 0;
 }
 
 // This function mounts a file system that is stored 
@@ -82,14 +83,6 @@ int umount_fs(char *disk_name);
 
 int main(int argc, char const *argv[])
 {
-    printf("--%d\n", make_fs("C"));
-    printf("%lu\n", sizeof(int));
 
-    uint8_t hour;
-    get_hour(&hour);
-    printf("hour %d\n", hour);
-    uint8_t min;
-    get_min(&min);
-    printf("min %d\n", min);
     return 0;
 }
