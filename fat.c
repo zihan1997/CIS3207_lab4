@@ -1,4 +1,3 @@
-#include "disk.h"
 #include "fat.h"
 
 uint8_t get_hour_mon(uint16_t t){
@@ -62,7 +61,7 @@ void initialStructures(){
 int make_fs(char* disk_name){
     // name is invalid
     if(!disk_name){
-        fprintf(stderr, "make_disk: invalid file name\n");
+        fprintf(stderr, "make_fs: invalid file name\n");
         return -1;
     }
     // create empty virtual disk
@@ -70,19 +69,66 @@ int make_fs(char* disk_name){
         return 0;
     }
     initialStructures();
+    // printf("variables initialized\n");
     return 0;
 }
 
 // This function mounts a file system that is stored 
 // on a virtual disk with name disk_name.
-int mount_fs(char *disk_name);
+int mount_fs(char *disk_name){
+    if(!disk_name){
+        fprintf(stderr, "make_disk: invalid file name\n");
+        return -1;
+    }
+    // use mmap to map
+    open_disk(disk_name);
+
+    void *region = mmap(
+        0,
+        4096,
+        PROT_READ | PROT_WRITE,
+        MAP_SHARED,
+        handle,
+        0
+    );
+    if(region == MAP_FAILED){
+        fprintf(stderr, "mmap failed\n");
+        return -1;
+    }
+
+    //
+    // block_write(0, "1st try");
+    // block_write(1, "2nd try");
+
+
+    // char data[4096] = "";
+    // block_read(1, data);
+    // printf("%s\n", data);
+    // munmap(region, sizeof(region));
+
+    // puts("end");
+    return 0;
+}
 
 // This function unmounts your file system 
 // from a virtual disk with name disk_name.
 int umount_fs(char *disk_name);
+int fs_open(char *name);
+int fs_close(int fildes);
+int fs_create(char *name);
+int fs_delete(char *name);
+int fs_mkdir(char *name);
+int fs_read(int fildes, void *buf, size_t nbyte);
+int fs_write(int fildes, void *buf, size_t nbyte);
+int fs_get_filesize(int fildes);
+int fs_lseek(int fildes, off_t offset);
+int fs_truncate(int fildes, off_t length);
+
 
 int main(int argc, char const *argv[])
 {
-
+    char* filename = "disk";
+    make_fs(filename);
+    mount_fs(filename);
     return 0;
 }
