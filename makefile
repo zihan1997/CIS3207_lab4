@@ -1,5 +1,5 @@
 all: fat
 fat:
-	gcc -Wall disk.c fat.c -o fat
-clean:
+	gcc fat.c -o fat
+cln:
 	rm fat
