@@ -8,32 +8,11 @@
 #include <limits.h>
 #include <string.h>
 #include <time.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include "disk.c"
 
-// Totally 58 bytes
-typedef struct SuperBlock
-{
-    uint16_t fat; // location of fat1
-    uint16_t fat1; // location of fat2
-    uint16_t root; // location of root directory
-    uint16_t data_blocks; // start location of data location
-    Volume volume // 50 bytes
-}SuperBlock;
-
-// Individual data structure in FAT
-// Totally 4 bytes
-typedef struct map
-{
-    uint16_t input;
-    uint16_t output;
-}map;
-
-// Totally 4 KB
-typedef struct FAT
-{
-    uint16_t total_blocks; // 2 bytes
-    uint16_t used_blocks; // 2 bytes
-    map maps[999];
-}FAT;
 
 // 51 Bytes
 typedef struct Entry{
@@ -50,6 +29,7 @@ typedef struct Entry{
     // use if the file is a folder
     struct Entry* entries;  // 4 bytes
 }Entry;
+
 
 // 4 bytes
 typedef struct VolumeHeader{
@@ -69,6 +49,32 @@ typedef struct Volume
     Entry* root; // 32
     // struct Data_blub; /*beginning of the data region*/
 }Volume;
+
+// Totally 58 bytes
+typedef struct SuperBlock
+{
+    uint16_t fat; // location of fat1
+    uint16_t fat1; // location of fat2
+    uint16_t root; // location of root directory
+    uint16_t data_blocks; // start location of data location
+    Volume volume; // 50 bytes
+}SuperBlock;
+
+// Individual data structure in FAT
+// Totally 4 bytes
+typedef struct map
+{
+    uint16_t input;
+    uint16_t output;
+}map;
+
+// Totally 4 KB
+typedef struct FAT
+{
+    uint16_t total_blocks; // 2 bytes
+    uint16_t used_blocks; // 2 bytes
+    map maps[999];
+}FAT;
 
 
 // Data structures
