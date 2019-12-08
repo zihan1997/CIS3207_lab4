@@ -127,24 +127,28 @@ int umount_fs(char *disk_name){
     return 0;
 }
 
-int find(char path[2][16], int size, Entry *one){
-    printf("1st name %s\n", path[0]);
+// find the path the file
+int find(char path[2][16], int size){
+    Entry *one;
+    // printf("1st name %s\n", path[0]);
+    int index = 0;
     for(int i = 0; i < rootDir.num_entries; i++){
-        printf("name %s --- %s\n", rootDir.entries[i].name, path[0]);
+        // printf("name %s --- %s\n", rootDir.entries[i].name, path[0]);
         if( strcmp((rootDir.entries + i)->name, path[0]) == 0){
-            one = &rootDir.entries[i];
+            one = &(rootDir.entries[i]);
+            index = i;
             printf("found %s\n", one->name);
         }
     }
     if(size == 1){
-        return 0;
+        return index;
     }
 
     // for size == 2
     for(int i = 0; i < one->num_entries; i++){
         if(strcmp( (one->entries + i)->name, path[1]) == 0){
             one = (one->entries + i);
-            return 0;
+            return 1000 * index + i;
         }
     }
     return -1;
@@ -157,7 +161,7 @@ int find(char path[2][16], int size, Entry *one){
 // to the calling function.
 int fs_open(char *name){
     // store the path to the file entry
-    char path[2][8];
+    char path[2][16];
 
     // strtok the name
     char temp[20];
@@ -175,7 +179,30 @@ int fs_open(char *name){
     // for(int x = 0; x < i; x++){
     //     printf("%s\n", path[x]);
     // }
-    
+
+    // file discriptor <= 63
+    if(discriptors.size == 64){
+        fprintf(stdout, "file discriptor <= 63\n");
+        return -1;
+    }
+    // File is in the rootDir
+    int index = find(path, num_folder);
+    int index_1 = -1;
+    if(num_folder == 1){
+        strcpy(discriptors.file_discs[discriptors.size].file_name 
+                , rootDir.entries[index].name);
+
+    }else if(num_folder == 2){ // file in one of dirs of rootdir
+        index /= 1000;
+        index_1 = index % 1000;
+        strcpy(discriptors.file_discs[discriptors.size].file_name 
+                , rootDir.entries[index].entries[index_1].name);
+    }else{
+        fprintf(stdout, "only one level below the root dir\n");
+        return -1;
+    }
+    discriptors.file_discs[discriptors.size].file_disc = discriptors.size;
+    discriptors.size += 1;
     
     return 1;
 }
@@ -238,10 +265,13 @@ int main(int argc, char const *argv[])
     strcpy(path[0], "xx");
     path[1][0] = '\0';
 
-    
-    Entry* third;
-    if(find(path, 1, third) == 0){
-        printf(">>%s\n", third->name);
+
+    int index = 0;
+    Entry third;
+    strcpy(third.name, "");
+    if((index = find(path, 1)) == 0){
+        // printf(">>%s\n", third.name);
+        printf(">>%s\n", rootDir.entries[index].name);
     }else{
         puts("wrong");
     }
