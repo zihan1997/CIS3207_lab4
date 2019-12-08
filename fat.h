@@ -1,6 +1,8 @@
 #ifndef _FAT_H
 #define _FAT_H
 
+#define FOLDER_ENTRIES 256
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -12,11 +14,23 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "disk.c"
+// 36 Bytes
+typedef struct Entry1{
+    char name[16]; //  16 bytes
+    char ext[3]; // 3 bytes
+    uint8_t attribute; // 1 byte; 1 for folder, 0 for file
+    uint16_t create_time; // 2 bytes, 1 byte for hour
+    uint16_t create_date; // 2 bytes, 
+    uint16_t last_access; // 2
+    uint16_t modified_time; // 2
+    uint16_t modified_date; // 2
+    uint16_t start_block; // 2
+    uint32_t size; // 4
+}Entry1;
 
-
-// 51 Bytes
+// 9216 Bytes
 typedef struct Entry{
-    char name[8]; //  8 bytes
+    char name[16]; //  12 bytes
     char ext[3]; // 3 bytes
     uint8_t attribute; // 1 byte; 1 for folder, 0 for file
     uint16_t create_time; // 2 bytes, 1 byte for hour
@@ -27,7 +41,8 @@ typedef struct Entry{
     uint16_t start_block; // 2
     uint32_t size;
     // use if the file is a folder
-    struct Entry* entries;  // 4 bytes
+    uint8_t size_folder;
+    struct Entry1 entries[FOLDER_ENTRIES];  
 }Entry;
 
 
@@ -82,6 +97,9 @@ static FAT fat;
 static SuperBlock superBlock;
 // static Entry entry;
 static Entry rootDir;
+
+// file discriptors
+static int discriptors;
 
 // Functions
 void initialStructures();
