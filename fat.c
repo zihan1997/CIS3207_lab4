@@ -129,19 +129,35 @@ int umount_fs(char *disk_name){
 }
 
 // find the path the file
-int find(char path[2][16], int size){
+int find(char *name){
+    // store the path to the file entry
+    char path[2][16];
+
+    // strtok the name
+    char temp[20];
+    strcpy(temp, name);
+    char *token = NULL;
+    char* rest = temp;
+    int num_folder = 0;
+
+    while((token = strtok_r(rest, "/", &rest))){
+        strcpy(path[num_folder], token);
+        // printf("%s\n", token);
+        num_folder+=1;
+    }
+
     Entry *one;
     // printf("1st name %s\n", path[0]);
     int index = 0;
     for(int i = 0; i < rootDir.num_entries; i++){
-        // printf("name %s --- %s\n", rootDir.entries[i].name, path[0]);
+        printf("name %s --- %s\n", rootDir.entries[i].name, path[0]);
         if( strcmp((rootDir.entries + i)->name, path[0]) == 0){
             one = &(rootDir.entries[i]);
             index = i;
             printf("found %s\n", one->name);
         }
     }
-    if(size == 1){
+    if(num_folder == 1){
         return index;
     }
 
@@ -187,7 +203,7 @@ int fs_open(char *name){
         return -1;
     }
     // File is in the rootDir
-    int index = find(path, num_folder);
+    int index = find(name);
     int index_1 = -1;
     if(num_folder == 1){
         strcpy(discriptors.file_discs[discriptors.size].file_name 
@@ -240,6 +256,7 @@ int fs_create(char *name){
         fprintf(stdout, "fs_create: name invalid\n");
         return -1;
     }
+    int index = find(name);
     return 1;
 }
 int fs_delete(char *name);
@@ -275,16 +292,10 @@ int main(int argc, char const *argv[])
     rootDir.entries[0] = file1;
     rootDir.entries[1] = file2;
 
-    // printf("%s\n", rootDir.entries[0].name);
-    char path[2][16];
-    strcpy(path[0], "xx");
-    path[1][0] = '\0';
-
-
     int index = 0;
     Entry third;
     strcpy(third.name, "");
-    if((index = find(path, 1)) == 0){
+    if((index = find("/xx")) != -1){
         // printf(">>%s\n", third.name);
         printf(">>%s\n", rootDir.entries[index].name);
     }else{
