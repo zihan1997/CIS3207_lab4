@@ -21,7 +21,7 @@ void initialStructures(){
     superBlock.fat = 3; // Block 3 & 4
     superBlock.fat1 = 5; // Block 5 & 6
     superBlock.root = 7; // Block 7 & 8
-    superBlock.data_blocks = 9;
+    superBlock.data_blocks = 11;
     // Volume Header
     superBlock.volume.vbr.num_fats = 2;
     superBlock.volume.vbr.root_entries = 2;
@@ -52,7 +52,10 @@ void initialStructures(){
     rootDir.modified_time = 0;
     rootDir.modified_date = 0;
     rootDir.size = 0; // folder no size;
-    rootDir.entries = NULL;
+    rootDir.size_folder = 0;
+
+    // discriptors
+    discriptors = 0;
 
 }
 
@@ -112,10 +115,109 @@ int mount_fs(char *disk_name){
 
 // This function unmounts your file system 
 // from a virtual disk with name disk_name.
-int umount_fs(char *disk_name);
-int fs_open(char *name);
-int fs_close(int fildes);
-int fs_create(char *name);
+int umount_fs(char *disk_name){
+    if(!disk_name){
+        fprintf(stdout, "umount_fs: disk_name invalid\n");
+        return -1;
+    }
+    // close disk
+    close_disk();
+
+    //
+    return 0;
+}
+
+// The file specified by name (in this case, name is a path 
+// to the file that is to be opened, including the actual 
+// filename part of the path) is opened for reading and writing, 
+// and the file descriptor corresponding to this file is returned 
+// to the calling function.
+int fs_open(char *name){
+    // store the path to the file entry
+    char path[20][8];
+
+    // strtok the name
+    char temp[20];
+    strcpy(temp, name);
+    char *token = NULL;
+    char* rest = temp;
+    int num_folder = 0;
+
+    while((token = strtok_r(rest, "/", &rest))){
+        strcpy(path[num_folder], token);
+        // printf("%s\n", token);
+        num_folder+=1;
+    }
+    // test the 2d array
+    // for(int x = 0; x < i; x++){
+    //     printf("%s\n", path[x]);
+    // }
+    int index = 0;
+    Entry *temp = rootDir.entries;
+    for(int i = 0; i < num_folder; i++){
+        if(find(temp, path[i]) == 0){
+        }
+    }
+    
+    
+    return 1;
+}
+
+// The file descriptor fildes is closed
+int fs_close(int fildes){
+    if(close(fildes)){
+        return -1;
+    }else{
+        return 0;
+    }
+}
+int find(Entry* one, char* name, int size){
+    for(int i = 0; i < size; i++){
+        if(strcmp(one[i].name, name) == 0){
+            one = &one[i];
+            return 0;
+        }
+    }
+    return -1;
+}
+void chdir(Entry current, char* name){
+    // store the path to the file entry
+    char path[20][8];
+
+    // strtok the name
+    char temp[20];
+    strcpy(temp, name);
+    char *token = NULL;
+    char* rest = temp;
+    int num_words = 0;
+
+    while((token = strtok_r(rest, "/", &rest))){
+        strcpy(path[num_words], token);
+        // printf("%s\n", token);
+        num_words+=1;
+    }
+    // last one is the file
+    Entry temp = rootDir;
+    for(int i = 0; i < num_words - 1; i++){
+        if(find(temp.entries, path[i], temp.)){
+            continue;
+        }else{
+            return -1;
+        }
+    }
+
+}
+
+// This function creates a new file with name name in your 
+// file system (name is the path to the file including the 
+// name of the file itself). 
+int fs_create(char *name){
+    if(!name){
+        fprintf(stdout, "fs_create: name invalid\n");
+        return -1;
+    }
+
+}
 int fs_delete(char *name);
 int fs_mkdir(char *name);
 int fs_read(int fildes, void *buf, size_t nbyte);
@@ -127,8 +229,10 @@ int fs_truncate(int fildes, off_t length);
 
 int main(int argc, char const *argv[])
 {
-    char* filename = "disk";
-    make_fs(filename);
-    mount_fs(filename);
+    // char* filename = "disk";
+    // make_fs(filename);
+    // mount_fs(filename);
+    char* filename = "/a/b/disk";
+    fs_open(filename);
     return 0;
 }
