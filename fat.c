@@ -52,11 +52,11 @@ void initialStructures(){
     rootDir.modified_time = 0;
     rootDir.modified_date = 0;
     rootDir.size = 0; // folder no size;
-    rootDir.size_folder = 0;
+    rootDir.num_entries = 0;
+    rootDir.entries = NULL;
 
     // discriptors
-    discriptors = 0;
-
+    discriptors.size = 0;
 }
 
 // This function creates a fresh (and empty) file system 
@@ -127,6 +127,29 @@ int umount_fs(char *disk_name){
     return 0;
 }
 
+int find(char path[2][16], int size, Entry *one){
+    printf("1st name %s\n", path[0]);
+    for(int i = 0; i < rootDir.num_entries; i++){
+        printf("name %s --- %s\n", rootDir.entries[i].name, path[0]);
+        if( strcmp((rootDir.entries + i)->name, path[0]) == 0){
+            one = &rootDir.entries[i];
+            printf("found %s\n", one->name);
+        }
+    }
+    if(size == 1){
+        return 0;
+    }
+
+    // for size == 2
+    for(int i = 0; i < one->num_entries; i++){
+        if(strcmp( (one->entries + i)->name, path[1]) == 0){
+            one = (one->entries + i);
+            return 0;
+        }
+    }
+    return -1;
+}
+
 // The file specified by name (in this case, name is a path 
 // to the file that is to be opened, including the actual 
 // filename part of the path) is opened for reading and writing, 
@@ -134,7 +157,7 @@ int umount_fs(char *disk_name){
 // to the calling function.
 int fs_open(char *name){
     // store the path to the file entry
-    char path[20][8];
+    char path[2][8];
 
     // strtok the name
     char temp[20];
@@ -152,12 +175,6 @@ int fs_open(char *name){
     // for(int x = 0; x < i; x++){
     //     printf("%s\n", path[x]);
     // }
-    int index = 0;
-    Entry *temp = rootDir.entries;
-    for(int i = 0; i < num_folder; i++){
-        if(find(temp, path[i]) == 0){
-        }
-    }
     
     
     return 1;
@@ -171,42 +188,7 @@ int fs_close(int fildes){
         return 0;
     }
 }
-int find(Entry* one, char* name, int size){
-    for(int i = 0; i < size; i++){
-        if(strcmp(one[i].name, name) == 0){
-            one = &one[i];
-            return 0;
-        }
-    }
-    return -1;
-}
-void chdir(Entry current, char* name){
-    // store the path to the file entry
-    char path[20][8];
 
-    // strtok the name
-    char temp[20];
-    strcpy(temp, name);
-    char *token = NULL;
-    char* rest = temp;
-    int num_words = 0;
-
-    while((token = strtok_r(rest, "/", &rest))){
-        strcpy(path[num_words], token);
-        // printf("%s\n", token);
-        num_words+=1;
-    }
-    // last one is the file
-    Entry temp = rootDir;
-    for(int i = 0; i < num_words - 1; i++){
-        if(find(temp.entries, path[i], temp.)){
-            continue;
-        }else{
-            return -1;
-        }
-    }
-
-}
 
 // This function creates a new file with name name in your 
 // file system (name is the path to the file including the 
@@ -216,7 +198,7 @@ int fs_create(char *name){
         fprintf(stdout, "fs_create: name invalid\n");
         return -1;
     }
-
+    return 1;
 }
 int fs_delete(char *name);
 int fs_mkdir(char *name);
@@ -232,7 +214,36 @@ int main(int argc, char const *argv[])
     // char* filename = "disk";
     // make_fs(filename);
     // mount_fs(filename);
-    char* filename = "/a/b/disk";
-    fs_open(filename);
+    // char* filename = "/a/b/disk";
+    // fs_open(filename);
+    Entry one;
+    one.attribute = 1;
+    one.num_entries = 2;
+
+    Entry file1 ;
+    file1.attribute = 0;
+    strcpy(file1.name, "xx");
+
+    Entry file2;
+    file2.attribute = 0;
+    strcpy(file2.name, "yy");
+
+    rootDir.num_entries = 2;
+    rootDir.entries = malloc(2 * sizeof(Entry));
+    rootDir.entries[0] = file1;
+    rootDir.entries[1] = file2;
+
+    // printf("%s\n", rootDir.entries[0].name);
+    char path[2][16];
+    strcpy(path[0], "xx");
+    path[1][0] = '\0';
+
+    
+    Entry* third;
+    if(find(path, 1, third) == 0){
+        printf(">>%s\n", third->name);
+    }else{
+        puts("wrong");
+    }
     return 0;
 }
