@@ -57,6 +57,7 @@ void initialStructures(){
 
     // discriptors
     discriptors.size = 0;
+    discriptors.next_avail = 0;
 }
 
 // This function creates a fresh (and empty) file system 
@@ -203,17 +204,31 @@ int fs_open(char *name){
     }
     discriptors.file_discs[discriptors.size].file_disc = discriptors.size;
     discriptors.size += 1;
+    discriptors.next_avail = discriptors.size;
     
     return 1;
 }
 
 // The file descriptor fildes is closed
 int fs_close(int fildes){
-    if(close(fildes)){
+    if(fildes > discriptors.size){
+        fprintf(stdout, "file dicriptor is not valid\n");
         return -1;
-    }else{
-        return 0;
     }
+    for(int i = 0; i < discriptors.size; i++){
+        if(discriptors.file_discs[i].file_disc == fildes){
+            // change file name to null
+            strcpy(discriptors.file_discs[i].file_name, NULL);
+            // change the file disc to 0
+            discriptors.file_discs[i].file_disc = 0;
+            // assign next avail one to this one
+            discriptors.next_avail = i;
+            // decrement the size
+            discriptors.size -= 1;
+            return 0;
+        }
+    }
+    return -1;
 }
 
 
