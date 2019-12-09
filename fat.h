@@ -14,23 +14,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "disk.c"
-// 36 Bytes
-typedef struct Entry1{
-    char name[16]; //  16 bytes
-    char ext[3]; // 3 bytes
-    uint8_t attribute; // 1 byte; 1 for folder, 0 for file
-    uint16_t create_time; // 2 bytes, 1 byte for hour
-    uint16_t create_date; // 2 bytes, 
-    uint16_t last_access; // 2
-    uint16_t modified_time; // 2
-    uint16_t modified_date; // 2
-    uint16_t start_block; // 2
-    uint32_t size; // 4
-}Entry1;
 
-// 9216 Bytes
+// 41 Bytes
 typedef struct Entry{
-    char name[16]; //  12 bytes
+    char name[16]; //  16 bytes
     char ext[3]; // 3 bytes
     uint8_t attribute; // 1 byte; 1 for folder, 0 for file
     uint16_t create_time; // 2 bytes, 1 byte for hour
@@ -41,38 +28,19 @@ typedef struct Entry{
     uint16_t start_block; // 2
     uint32_t size;
     // use if the file is a folder
-    uint8_t size_folder;
-    struct Entry1 entries[FOLDER_ENTRIES];  
+    uint8_t num_entries;
+    struct Entry* entries;  
 }Entry;
 
 
-// 4 bytes
-typedef struct VolumeHeader{
-    uint16_t num_fats; // 2 bytes, number of fat
-    uint16_t root_entries; //2 bytes,number of root entrie 
-}VolumeHeader;
 
-// 50 bytes
-typedef struct Volume
-{
-    char name[6]; /*identifer for the virtualdisk*/ 
-    // char img[PATH_MAX]; /*disk file's file pointer*/
-    // int state;
-    uint32_t used_size; // 4 bytes
-    struct VolumeHeader vbr; // 4 bytes
-    struct FAT *fat; // 4
-    Entry* root; // 32
-    // struct Data_blub; /*beginning of the data region*/
-}Volume;
-
-// Totally 58 bytes
+// Totally 8 bytes
 typedef struct SuperBlock
 {
     uint16_t fat; // location of fat1
     uint16_t fat1; // location of fat2
     uint16_t root; // location of root directory
     uint16_t data_blocks; // start location of data location
-    Volume volume; // 50 bytes
 }SuperBlock;
 
 // Individual data structure in FAT
@@ -91,15 +59,46 @@ typedef struct FAT
     map maps[999];
 }FAT;
 
+typedef struct Discriptor{
+    char file_name[16]; // file name
+    uint8_t file_disc; // file discriptor
+}Discriptor;
+
+typedef struct Discriptors{
+    uint8_t next_avail;
+    uint8_t size;
+    Discriptor file_discs[64];
+}Discriptors;
+
+// 4 bytes
+typedef struct VolumeHeader{
+    uint16_t num_fats; // 2 bytes, number of fat
+    uint16_t root_entries; //2 bytes,number of root entrie 
+}VolumeHeader;
+
+// 50 bytes
+typedef struct Volume
+{
+    char name[6]; /*identifer for the virtualdisk*/ 
+    char img[PATH_MAX]; /*disk file's file pointer*/
+    // int state;
+    uint32_t used_size; // 4 bytes
+    VolumeHeader *vbr; // 4 bytes
+    SuperBlock *super_block;
+    FAT *fat; // 4
+    Entry* root; // 32
+    // struct Data_blub; /*beginning of the data region*/
+}Volume;
 
 // Data structures
+static VolumeHeader *vbr;
+static Volume *disk;
 static FAT fat;
 static SuperBlock superBlock;
 // static Entry entry;
 static Entry rootDir;
-
 // file discriptors
-static int discriptors;
+static Discriptors discriptors;
 
 // Functions
 void initialStructures();
