@@ -129,35 +129,19 @@ int umount_fs(char *disk_name){
 }
 
 // find the path the file
-int find(char *name){
-    // store the path to the file entry
-    char path[2][16];
-
-    // strtok the name
-    char temp[20];
-    strcpy(temp, name);
-    char *token = NULL;
-    char* rest = temp;
-    int num_folder = 0;
-
-    while((token = strtok_r(rest, "/", &rest))){
-        strcpy(path[num_folder], token);
-        // printf("%s\n", token);
-        num_folder+=1;
-    }
-
+int find(char path[2][16], int size){
     Entry *one;
     // printf("1st name %s\n", path[0]);
     int index = 0;
     for(int i = 0; i < rootDir.num_entries; i++){
-        printf("name %s --- %s\n", rootDir.entries[i].name, path[0]);
+        // printf("name %s --- %s\n", rootDir.entries[i].name, path[0]);
         if( strcmp((rootDir.entries + i)->name, path[0]) == 0){
             one = &(rootDir.entries[i]);
             index = i;
             printf("found %s\n", one->name);
         }
     }
-    if(num_folder == 1){
+    if(size == 1){
         return index;
     }
 
@@ -203,7 +187,7 @@ int fs_open(char *name){
         return -1;
     }
     // File is in the rootDir
-    int index = find(name);
+    int index = find(path, num_folder);
     int index_1 = -1;
     if(num_folder == 1){
         strcpy(discriptors.file_discs[discriptors.size].file_name 
@@ -247,8 +231,20 @@ int fs_close(int fildes){
     return -1;
 }
 
+void match_name_ext(Entry *one, char* name){
+    char* temp = strdup(name);
 
-// This function creates a new file with name name in your 
+    char *token = NULL;
+    char *rest = temp;
+    if((token = strtok_r(rest, ".", &rest)) != NULL ){
+        char *name = one->name;
+        strcpy(name, token);
+        char *ext = one->ext;
+        strcpy(ext, rest);
+    }
+}
+
+// This function creates a new file with name in your 
 // file system (name is the path to the file including the 
 // name of the file itself). 
 int fs_create(char *name){
@@ -256,7 +252,40 @@ int fs_create(char *name){
         fprintf(stdout, "fs_create: name invalid\n");
         return -1;
     }
-    int index = find(name);
+
+    // store the path to the file entry
+    char path[2][16];
+
+    // strtok the name
+    char temp[20];
+    strcpy(temp, name);
+    char *token = NULL;
+    char* rest = temp;
+    int num_folder = 0;
+
+    while((token = strtok_r(rest, "/", &rest))){
+        strcpy(path[num_folder], token);
+        // printf("%s\n", token);
+        num_folder+=1;
+    }
+    // adjust time
+    time_t rawtime;
+    struct tm *timeinfo;
+    time(&rawtime);
+    timeinfo = localtime ( &rawtime );
+    
+
+    int index = find(path, num_folder);
+    if(num_folder == 1){
+        Entry a = rootDir.entries[rootDir.num_entries];
+        a.attribute = 0;
+        a.create_time = (timeinfo->tm_hour << 8) + timeinfo->tm_min;
+        a.create_date = (timeinfo->tm_mon << 8) + timeinfo->tm_mday;
+        
+
+        char* ext = path[num_folder-1];
+    }
+
     return 1;
 }
 int fs_delete(char *name);
@@ -275,31 +304,42 @@ int main(int argc, char const *argv[])
     // mount_fs(filename);
     // char* filename = "/a/b/disk";
     // fs_open(filename);
-    Entry one;
-    one.attribute = 1;
-    one.num_entries = 2;
+    // Entry one;
+    // one.attribute = 1;
+    // one.num_entries = 2;
 
     Entry file1 ;
     file1.attribute = 0;
     strcpy(file1.name, "xx");
 
-    Entry file2;
-    file2.attribute = 0;
-    strcpy(file2.name, "yy");
+    // Entry file2;
+    // file2.attribute = 0;
+    // strcpy(file2.name, "yy");
 
-    rootDir.num_entries = 2;
-    rootDir.entries = malloc(2 * sizeof(Entry));
-    rootDir.entries[0] = file1;
-    rootDir.entries[1] = file2;
+    // rootDir.num_entries = 2;
+    // rootDir.entries = malloc(2 * sizeof(Entry));
+    // rootDir.entries[0] = file1;
+    // rootDir.entries[1] = file2;
 
-    int index = 0;
+    // printf("%s\n", rootDir.entries[0].name);
+    // char path[2][16];
+    // strcpy(path[0], "yy");
+    // path[1][0] = '\0';
+
+
+    // int index = 0;
     Entry third;
-    strcpy(third.name, "");
-    if((index = find("/xx")) != -1){
-        // printf(">>%s\n", third.name);
-        printf(">>%s\n", rootDir.entries[index].name);
-    }else{
-        puts("wrong");
-    }
+    third.attribute = 0;
+    // strcpy(third.name, "");
+    // if((index = find(path, 1)) != -1){
+    //     // printf(">>%s\n", third.name);
+    //     printf(">>%s\n", rootDir.entries[index].name);
+    // }else{
+    //     puts("wrong");
+    // }
+    match_name_ext(&third, "a.txt");
+    // printf(">>%s . %s\n", third.name, third.ext);
+
+
     return 0;
 }
