@@ -241,6 +241,7 @@ void match_name_ext(Entry *one, char* name){
         strcpy(name, token);
         char *ext = one->ext;
         strcpy(ext, rest);
+        
     }
 }
 
