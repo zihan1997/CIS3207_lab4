@@ -22,18 +22,10 @@ void initialStructures(){
     superBlock.fat1 = 5; // Block 5 & 6
     superBlock.root = 7; // Block 7 & 8
     superBlock.data_blocks = 11;
-    // Volume Header
-    superBlock.volume.vbr.num_fats = 2;
-    superBlock.volume.vbr.root_entries = 2;
-    // Volume
-    strcpy(superBlock.volume.name, "C");
-    superBlock.volume.used_size = 32000; // bytes
-    superBlock.volume.fat = &fat;
-    superBlock.volume.root = &rootDir;
 
     // FAT
-    fat.total_blocks = 16384;
-    fat.used_blocks = 8; // structures blocks
+    fat.total_blocks = 2;
+    fat.used_blocks = 2; // structures blocks
     // fat.maps = NULL;
 
     // Root Dir
@@ -58,6 +50,19 @@ void initialStructures(){
     // discriptors
     discriptors.size = 0;
     discriptors.next_avail = 0;
+
+    // Volume Header
+    vbr = malloc(sizeof(VolumeHeader));
+    vbr->num_fats = 2;
+    vbr->root_entries = 2;
+
+    // Volume
+    disk = malloc(sizeof(Volume));
+    strcpy(disk->name, "C");
+    strcpy(disk->img, "f");
+    disk->used_size = 40960;
+    disk->fat = &fat;
+    disk->root = &rootDir;
 }
 
 // This function creates a fresh (and empty) file system 
@@ -87,7 +92,7 @@ int mount_fs(char *disk_name){
     // use mmap to map
     open_disk(disk_name);
 
-    void *region = mmap(
+    disk = mmap(
         0,
         4096,
         PROT_READ | PROT_WRITE,
@@ -95,22 +100,11 @@ int mount_fs(char *disk_name){
         handle,
         0
     );
-    if(region == MAP_FAILED){
+    if(disk == MAP_FAILED){
         fprintf(stderr, "mmap failed\n");
         return -1;
     }
 
-    //
-    // block_write(0, "1st try");
-    // block_write(1, "2nd try");
-
-
-    // char data[4096] = "";
-    // block_read(1, data);
-    // printf("%s\n", data);
-    // munmap(region, sizeof(region));
-
-    // puts("end");
     return 0;
 }
 
@@ -241,7 +235,7 @@ void match_name_ext(Entry *one, char* name){
         strcpy(name, token);
         char *ext = one->ext;
         strcpy(ext, rest);
-        
+
     }
 }
 
@@ -276,19 +270,34 @@ int fs_create(char *name){
     timeinfo = localtime ( &rawtime );
     
 
-    int index = find(path, num_folder);
+    int index = find(path, num_folder-1);
+    Entry a;
     if(num_folder == 1){
-        Entry a = rootDir.entries[rootDir.num_entries];
-        a.attribute = 0;
-        a.create_time = (timeinfo->tm_hour << 8) + timeinfo->tm_min;
-        a.create_date = (timeinfo->tm_mon << 8) + timeinfo->tm_mday;
-        
+        a = rootDir.entries[rootDir.num_entries];
+        rootDir.num_entries += 1;
 
-        char* ext = path[num_folder-1];
+    }else if(num_folder == 2){
+        a = rootDir.entries[index].entries[rootDir.entries[index].num_entries];
+        rootDir.entries[index].num_entries += 1;
+    }else{
+        fprintf(stdout, "fs_create: one two level\n");
+        return -1;
     }
+    match_name_ext(&a, path[0]);
+    a.attribute = 0;
+    a.create_time = (timeinfo->tm_hour << 8) + timeinfo->tm_min;
+    a.create_date = (timeinfo->tm_mon << 8) + timeinfo->tm_mday;
+    a.start_block = -1;
+    a.size = 0;
+    a.num_entries = 0;
+    a.entries = NULL;
 
     return 1;
 }
+
+// This function deletes the file with the path and name name 
+// from the directory of your file system and frees all data 
+// blocks and meta-information that correspond to that file
 int fs_delete(char *name);
 int fs_mkdir(char *name);
 int fs_read(int fildes, void *buf, size_t nbyte);
@@ -298,49 +307,49 @@ int fs_lseek(int fildes, off_t offset);
 int fs_truncate(int fildes, off_t length);
 
 
-int main(int argc, char const *argv[])
-{
-    // char* filename = "disk";
-    // make_fs(filename);
-    // mount_fs(filename);
-    // char* filename = "/a/b/disk";
-    // fs_open(filename);
-    // Entry one;
-    // one.attribute = 1;
-    // one.num_entries = 2;
+// int main(int argc, char const *argv[])
+// {
+//     // char* filename = "disk";
+//     // make_fs(filename);
+//     // mount_fs(filename);
+//     // char* filename = "/a/b/disk";
+//     // fs_open(filename);
+//     // Entry one;
+//     // one.attribute = 1;
+//     // one.num_entries = 2;
 
-    Entry file1 ;
-    file1.attribute = 0;
-    strcpy(file1.name, "xx");
+//     Entry file1 ;
+//     file1.attribute = 0;
+//     strcpy(file1.name, "xx");
 
-    // Entry file2;
-    // file2.attribute = 0;
-    // strcpy(file2.name, "yy");
+//     // Entry file2;
+//     // file2.attribute = 0;
+//     // strcpy(file2.name, "yy");
 
-    // rootDir.num_entries = 2;
-    // rootDir.entries = malloc(2 * sizeof(Entry));
-    // rootDir.entries[0] = file1;
-    // rootDir.entries[1] = file2;
+//     // rootDir.num_entries = 2;
+//     // rootDir.entries = malloc(2 * sizeof(Entry));
+//     // rootDir.entries[0] = file1;
+//     // rootDir.entries[1] = file2;
 
-    // printf("%s\n", rootDir.entries[0].name);
-    // char path[2][16];
-    // strcpy(path[0], "yy");
-    // path[1][0] = '\0';
-
-
-    // int index = 0;
-    Entry third;
-    third.attribute = 0;
-    // strcpy(third.name, "");
-    // if((index = find(path, 1)) != -1){
-    //     // printf(">>%s\n", third.name);
-    //     printf(">>%s\n", rootDir.entries[index].name);
-    // }else{
-    //     puts("wrong");
-    // }
-    match_name_ext(&third, "a.txt");
-    // printf(">>%s . %s\n", third.name, third.ext);
+//     // printf("%s\n", rootDir.entries[0].name);
+//     // char path[2][16];
+//     // strcpy(path[0], "yy");
+//     // path[1][0] = '\0';
 
 
-    return 0;
-}
+//     // int index = 0;
+//     Entry third;
+//     third.attribute = 0;
+//     // strcpy(third.name, "");
+//     // if((index = find(path, 1)) != -1){
+//     //     // printf(">>%s\n", third.name);
+//     //     printf(">>%s\n", rootDir.entries[index].name);
+//     // }else{
+//     //     puts("wrong");
+//     // }
+//     match_name_ext(&third, "a.txt");
+//     // printf(">>%s . %s\n", third.name, third.ext);
+
+
+//     return 0;
+// }
