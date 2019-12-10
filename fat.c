@@ -134,7 +134,7 @@ int find(char path[2][16], int size){
         if( strcmp((rootDir.entries + i)->name, path[0]) == 0){
             one = &(rootDir.entries[i]);
             index = i;
-            printf("found %s\n", one->name);
+            // printf("found %s\n", one->name);
         }
     }
     if(size == 1){
@@ -237,9 +237,10 @@ void match_name_ext(Entry *one, char* name){
     if((token = strtok_r(rest, ".", &rest)) != NULL ){
         char *name = one->name;
         strcpy(name, token);
+        // printf("\tname %s\n", one->name);
         char *ext = one->ext;
         strcpy(ext, rest);
-
+        // printf("\text %s\n", one->ext);
     }
 }
 
@@ -281,14 +282,21 @@ int fs_create(char *name){
         a = &rootDir.entries[rootDir.num_entries];
         rootDir.num_entries += 1;
     }else if(num_folder == 2){
-        int index = find(path, rootDir.num_entries);
+        int index;
+        for(int i = 0; i < rootDir.num_entries; i++){
+            if(strcmp(rootDir.entries[i].name, path[0]) == 0){
+                index = i;
+            }
+        }
         a = &rootDir.entries[index].entries[rootDir.entries[index].num_entries];
+        a = malloc(sizeof(Entry));
         rootDir.entries[index].num_entries += 1;
     }else{
         fprintf(stdout, "fs_create: one two level\n");
         return -1;
     }
-    match_name_ext(a, path[0]);
+    match_name_ext(a, path[num_folder-1]);
+    // printf("\tname %s\n", a->name);
     a->attribute = 0;
     a->create_time = (timeinfo->tm_hour << 8) + timeinfo->tm_min;
     a->create_date = (timeinfo->tm_mon << 8) + timeinfo->tm_mday;
@@ -403,7 +411,6 @@ int fs_mkdir(char *name){
     one->size = 0;
     one->num_entries = 0;
     one->entries = malloc(20 * sizeof(Entry));
-    puts("all-done");
     return 0;
 }
 
@@ -431,7 +438,8 @@ int fs_write(int fildes, void *buf, size_t nbyte){
     if(sizeof(buf) > BLOCK_SIZE){
         int diff = sizeof(buf) - BLOCK_SIZE;
         char *rest = (char *)buf;
-        return fs_write(fildes, rest[diff], nbyte-BLOCK_SIZE);
+        rest = rest + diff;
+        return fs_write(fildes, rest, nbyte-BLOCK_SIZE);
     }
     // check the fat map
     Entry *one;
