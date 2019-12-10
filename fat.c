@@ -308,7 +308,7 @@ int fs_create(char *name){
 // blocks and meta-information that correspond to that file
 int fs_delete(char *name){
     if(!name){
-        fprintf(stdout, "fs_create: name invalid\n");
+        fprintf(stdout, "fs_delete: name invalid\n");
         return -1;
     }
     fs_close(name);
@@ -342,7 +342,58 @@ int fs_delete(char *name){
 
 }
 
-int fs_mkdir(char *name);
+// This function attempts to create a directory with the name name. 
+int fs_mkdir(char *name){
+    if(!name){
+        fprintf(stdout, "fs_mkdir: name invalid\n");
+        return -1;
+    }
+
+    // store the path to the file entry
+    char path[2][16];
+
+    // strtok the name
+    char temp[20];
+    strcpy(temp, name);
+    char *token = NULL;
+    char* rest = temp;
+    int num_folder = 0;
+
+    while((token = strtok_r(rest, "/", &rest))){
+        strcpy(path[num_folder], token);
+        // printf("%s\n", token);
+        num_folder+=1;
+    }
+
+    // adjust time
+    time_t rawtime;
+    struct tm *timeinfo;
+    time(&rawtime);
+    timeinfo = localtime ( &rawtime );
+
+    int index = find(path, num_folder-1);
+    Entry *one;
+    if(num_folder == 1){
+        one = &rootDir.entries[rootDir.num_entries];
+        rootDir.num_entries += 1;
+    }else if(num_folder == 2){
+        one = &rootDir.entries[index].entries[rootDir.entries[index].num_entries];
+        rootDir.entries[index].num_entries += 1;
+    }else{
+        fprintf(stdout, "two level only\n");
+        return -1;
+    }
+
+    match_name_ext(one, path[num_folder-1]);
+    one->attribute = 1;
+    one->create_time = (timeinfo->tm_hour << 8) + timeinfo->tm_min;
+    one->create_date = (timeinfo->tm_mon << 8) + timeinfo->tm_mday;
+    one->start_block = -1;
+    one->size = 0;
+    one->num_entries = 0;
+    one->entries = NULL;
+    return 0;
+}
 int fs_read(int fildes, void *buf, size_t nbyte);
 int fs_write(int fildes, void *buf, size_t nbyte);
 int fs_get_filesize(int fildes);
