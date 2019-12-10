@@ -281,7 +281,6 @@ int fs_create(char *name){
         a = &rootDir.entries[rootDir.num_entries];
         rootDir.num_entries += 1;
     }else if(num_folder == 2){
-        puts("entry in 2nd level");
         int index = find(path, rootDir.num_entries);
         a = &rootDir.entries[index].entries[rootDir.entries[index].num_entries];
         rootDir.entries[index].num_entries += 1;
@@ -298,7 +297,7 @@ int fs_create(char *name){
     a->num_entries = 0;
     a->entries = NULL;
 
-    printf("%s %s\n", rootDir.entries[0].name, rootDir.entries[0].ext);
+    // printf("%s %s\n", rootDir.entries[0].name, rootDir.entries[0].ext);
 
     return 1;
 }
@@ -311,7 +310,6 @@ int fs_delete(char *name){
         fprintf(stdout, "fs_delete: name invalid\n");
         return -1;
     }
-    fs_close(name);
     // store the path to the file entry
     char path[2][16];
 
@@ -327,6 +325,14 @@ int fs_delete(char *name){
         // printf("%s\n", token);
         num_folder+=1;
     }
+
+    for(int i = 0; i < 64; i++){
+        if(strncmp(discriptors.file_discs[i].file_name, 
+                    path[num_folder-1],
+                    strlen(discriptors.file_discs[i].file_name)) == 0){
+            fs_close(discriptors.file_discs[i].file_disc);
+        }
+    }
     // name earsing
     int index = find(path, num_folder);
     if(num_folder == 1){
@@ -339,7 +345,7 @@ int fs_delete(char *name){
             break;
         }
     }
-
+    return 0;
 }
 
 // This function attempts to create a directory with the name name. 
@@ -364,19 +370,18 @@ int fs_mkdir(char *name){
         // printf("%s\n", token);
         num_folder+=1;
     }
-
     // adjust time
     time_t rawtime;
     struct tm *timeinfo;
     time(&rawtime);
     timeinfo = localtime ( &rawtime );
-
-    int index = find(path, num_folder-1);
+    
     Entry *one;
     if(num_folder == 1){
         one = &rootDir.entries[rootDir.num_entries];
         rootDir.num_entries += 1;
     }else if(num_folder == 2){
+        int index = find(path, num_folder-1);
         one = &rootDir.entries[index].entries[rootDir.entries[index].num_entries];
         rootDir.entries[index].num_entries += 1;
     }else{
@@ -384,16 +389,25 @@ int fs_mkdir(char *name){
         return -1;
     }
 
-    match_name_ext(one, path[num_folder-1]);
+    char *name1 = one->name;
+    if(num_folder == 1){
+        strcpy(name1, path[0]);
+    }else if(num_folder == 2){
+        strcpy(name1, path[1]);
+    }
+
     one->attribute = 1;
     one->create_time = (timeinfo->tm_hour << 8) + timeinfo->tm_min;
     one->create_date = (timeinfo->tm_mon << 8) + timeinfo->tm_mday;
     one->start_block = -1;
     one->size = 0;
     one->num_entries = 0;
-    one->entries = NULL;
+    one->entries = malloc(20 * sizeof(Entry));
+    puts("all-done");
     return 0;
 }
+
+
 int fs_read(int fildes, void *buf, size_t nbyte);
 int fs_write(int fildes, void *buf, size_t nbyte);
 int fs_get_filesize(int fildes);
