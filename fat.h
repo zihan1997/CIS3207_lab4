@@ -48,7 +48,7 @@ typedef struct SuperBlock
 typedef struct map
 {
     uint16_t input;
-    uint16_t output;
+    int16_t output;
 }map;
 
 // Totally 4 KB
@@ -60,6 +60,7 @@ typedef struct FAT
 }FAT;
 
 typedef struct Discriptor{
+    uint8_t index;
     char file_name[16]; // file name
     uint8_t file_disc; // file discriptor
 }Discriptor;
