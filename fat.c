@@ -45,7 +45,7 @@ void initialStructures(){
     rootDir.modified_date = 0;
     rootDir.size = 0; // folder no size;
     rootDir.num_entries = 0;
-    rootDir.entries = NULL;
+    rootDir.entries = malloc(sizeof(Entry) * 200);
 
     // discriptors
     discriptors.size = 0;
@@ -115,17 +115,19 @@ int umount_fs(char *disk_name){
         fprintf(stdout, "umount_fs: disk_name invalid\n");
         return -1;
     }
+    // free pointers
+    free(vbr);
+    free(disk);
     // close disk
     close_disk();
 
-    //
     return 0;
 }
 
 // find the path the file
 int find(char path[2][16], int size){
     Entry *one;
-    // printf("1st name %s\n", path[0]);
+    // printf("1st name %s size is %d\n", path[0], size);
     int index = 0;
     for(int i = 0; i < rootDir.num_entries; i++){
         // printf("name %s --- %s\n", rootDir.entries[i].name, path[0]);
@@ -269,28 +271,32 @@ int fs_create(char *name){
     time(&rawtime);
     timeinfo = localtime ( &rawtime );
     
-
-    int index = find(path, num_folder-1);
-    Entry a;
+    // puts("find start");
+    // int index = find(path, num_folder-1);
+    // puts("find end");
+    Entry *a;
     if(num_folder == 1){
-        a = rootDir.entries[rootDir.num_entries];
+        a = &rootDir.entries[rootDir.num_entries];
         rootDir.num_entries += 1;
-
     }else if(num_folder == 2){
-        a = rootDir.entries[index].entries[rootDir.entries[index].num_entries];
+        puts("entry in 2nd level");
+        int index = find(path, rootDir.num_entries);
+        a = &rootDir.entries[index].entries[rootDir.entries[index].num_entries];
         rootDir.entries[index].num_entries += 1;
     }else{
         fprintf(stdout, "fs_create: one two level\n");
         return -1;
     }
-    match_name_ext(&a, path[0]);
-    a.attribute = 0;
-    a.create_time = (timeinfo->tm_hour << 8) + timeinfo->tm_min;
-    a.create_date = (timeinfo->tm_mon << 8) + timeinfo->tm_mday;
-    a.start_block = -1;
-    a.size = 0;
-    a.num_entries = 0;
-    a.entries = NULL;
+    match_name_ext(a, path[0]);
+    a->attribute = 0;
+    a->create_time = (timeinfo->tm_hour << 8) + timeinfo->tm_min;
+    a->create_date = (timeinfo->tm_mon << 8) + timeinfo->tm_mday;
+    a->start_block = -1;
+    a->size = 0;
+    a->num_entries = 0;
+    a->entries = NULL;
+
+    printf("%s %s\n", rootDir.entries[0].name, rootDir.entries[0].ext);
 
     return 1;
 }
