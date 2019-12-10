@@ -341,7 +341,7 @@ int fs_delete(char *name){
     // delete from fat
     for(int i = 0; i < 999; i++){
         if(fat.maps[i].input == rootDir.entries[index].start_block){
-            fat.maps[i].input = -1;
+            fat.maps[i].output = -1;
             break;
         }
     }
@@ -409,7 +409,45 @@ int fs_mkdir(char *name){
 
 
 int fs_read(int fildes, void *buf, size_t nbyte);
-int fs_write(int fildes, void *buf, size_t nbyte);
-int fs_get_filesize(int fildes);
-int fs_lseek(int fildes, off_t offset);
-int fs_truncate(int fildes, off_t length);
+
+// This function attempts to write nbyte bytes of data 
+// to the file referenced by the descriptor fildesfrom 
+// the buffer pointed to by buf. 
+int fs_write(int fildes, void *buf, size_t nbyte){
+    int index = -1;
+    for(int i = 0; i < 999; i++){
+        if(discriptors.file_discs[i].file_disc == fildes){
+            index = discriptors.file_discs[i].index;
+            break;
+        }
+    }
+
+    // fildes is not valid
+    if(index == -1){
+        fprintf(stdout, "fs_write: fildes is not valid\n");
+        return -1;
+    }
+    // split data if it is large
+    if(sizeof(buf) > BLOCK_SIZE){
+        int diff = sizeof(buf) - BLOCK_SIZE;
+        char *rest = (char *)buf;
+        return fs_write(fildes, rest[diff], nbyte-BLOCK_SIZE);
+    }
+    // check the fat map
+    Entry *one;
+    if(index > 1000){
+        one = &rootDir.entries[index / 1000].entries[index % 1000];
+    }else{
+        one = &rootDir.entries[index];
+    }
+
+    int m = 0;
+    while( fat.maps[m].output != -1){
+        m+=1;
+    }
+    one->start_block = m;
+    fat.maps[m].output = -1;
+
+    block_write(m, buf);
+    return 1;
+}
