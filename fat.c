@@ -415,7 +415,25 @@ int fs_mkdir(char *name){
 }
 
 
-int fs_read(int fildes, void *buf, size_t nbyte);
+int fs_read(int fildes, void *buf, size_t nbyte){
+    int index = -1;
+    for(int i = 0; i < 999; i++){
+        if(discriptors.file_discs[i].file_disc == fildes){
+            index = discriptors.file_discs[i].index;
+            break;
+        }
+    }
+    // fildes is not valid
+    if(index == -1){
+        fprintf(stdout, "fs_read: fildes is not valid\n");
+        return -1;
+    }
+    if(index <= 1000){
+        block_read(rootDir.entries[index].start_block, buf);
+        
+    }
+    return 0;
+}
 
 // This function attempts to write nbyte bytes of data 
 // to the file referenced by the descriptor fildesfrom 
