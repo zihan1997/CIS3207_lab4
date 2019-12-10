@@ -1,0 +1,19 @@
+The lab contains many funtions. While I was doing the lab, I have found many
+compromises. If time is enough, I can do better.
+1. my code only supports two level dimensions. the second level is not 
+    funtioning well enough. There often happens gliches inclinding 
+    segment fault.
+2. Three funtion which are the last three are not done. 
+    1. for the fs_get_filesize, my basic idea is, I will find the 
+        location of the fildes, then read the blocks it has used.
+    2. for the fs_lseek(), when doing append, I will assign a new block to
+        simulate the action of appending. For other actions, I will thy to 
+        read the block containing the offeset. Then, split the content according
+        to the offeset;
+    3. for the fs_truncate(), I will get the size of the file first, then 
+        if the new size is larger, then nothing changes, otherwise, I will
+        re-write the file with the new length.
+3. My FAT table is actually not large enough because I have fixed size of blocks
+    for the table. If I change it, there will be huge of lines needed to be chagned.
+4. Due to imcompleting funciton, I do not have the ability to test to see if the file exits
+    if I re-open it.
