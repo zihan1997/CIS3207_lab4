@@ -22,6 +22,13 @@ int main(int argc, char const *argv[])
     fs_mkdir(folder1);
     printf(">>> check folder name: %s\n", rootDir.entries[1].name);
 
+    printf("delete file\n");
+    char file2[20] = "/a2.txt";
+    fs_create(file2);
+    fs_delete(file2);
+    printf(">>> check %s.%s\n", rootDir.entries[2].name, rootDir.entries[2].ext);
+    
+    
     printf("write in file\n");
     fs_open("/a.txt");
     fs_write(0, "hello world\n", 12);
